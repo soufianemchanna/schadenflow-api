@@ -24,8 +24,8 @@ public class Agent extends SoftDeletable {
 
     private UUID userId;
 
-    @Column(unique = true, nullable = false)
-    private String name;
+    @Column(nullable = false)
+    private String agentName;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -37,6 +37,7 @@ public class Agent extends SoftDeletable {
     @Builder.Default private boolean available = true;
     @Builder.Default private int activeClaimsCount = 0;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

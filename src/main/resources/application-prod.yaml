@@ -1,8 +1,11 @@
 spring:
   jpa:
-    show-sql: false
     hibernate:
       ddl-auto: validate
+  flyway:
+    clean-disabled: false
+    baseline-on-migrate: false
+    validate-on-migrate: true
   mail:
     host: smtp-relay.brevo.com
     port: 587
@@ -12,6 +15,6 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
-brevo:
-  sender-email: ${BREVO_SENDER_EMAIL}
-  sender-name: Schadenflow Team
+#brevo:
+#  sender-email: ${BREVO_SENDER_EMAIL}
+#  sender-name: Schadenflow Team

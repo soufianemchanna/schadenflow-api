@@ -29,8 +29,9 @@ public class AgentNote extends SoftDeletable {
     private UUID agentId;
 
     @Column(nullable = false, length = 2000)
-    private String content;
+    private String noteContent;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist void onCreate() {createdAt = LocalDateTime.now();}

@@ -27,9 +27,11 @@ public class User extends SoftDeletable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private Role userRole;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
+
     private LocalDateTime lastLogin;
 
     @PrePersist

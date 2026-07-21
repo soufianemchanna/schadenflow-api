@@ -22,15 +22,24 @@ public class AuditLog extends SoftDeletable {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
     private String entityType;
+
+    @Column(nullable = false)
     private UUID entityId;
-    private String action;
+
+    @Column(nullable = false)
+    private String performedAction; //TODO: Determining what action as enum (in future)
+
     private String details;
+
+    @Column(nullable = false)
     private String performedBy; //TODO: by email or name of user, to see
 
     @Column(length = 500) private String oldValue;
     @Column(length = 500) private String newValue;
 
+    @Column(nullable = false)
     private LocalDateTime performedAt;
 
     @PrePersist void onCreate() {performedAt = LocalDateTime.now();}

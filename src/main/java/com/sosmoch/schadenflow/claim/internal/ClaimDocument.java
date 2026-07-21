@@ -46,6 +46,7 @@ public class ClaimDocument extends SoftDeletable {
     @Column(nullable = false)
     private String objectKey;
 
+    @Column(nullable = false)
     private LocalDateTime uploadedAt;
 
     @PrePersist void onCreate() {uploadedAt = LocalDateTime.now();}

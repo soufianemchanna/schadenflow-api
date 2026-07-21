@@ -29,13 +29,14 @@ public class Notification extends SoftDeletable {
     private String message;
 
     @Column(nullable = false)
-    private String type; //TODO: should be enum : "CLAIM_SUBMITTED", "CLAIM_VALIDATED", etc
+    private String notifType; //TODO: should be enum : "CLAIM_SUBMITTED", "CLAIM_VALIDATED", etc
 
     @Column(nullable = false)
     private UUID claimId;
 
-    @Builder.Default private boolean read = false;
+    @Builder.Default private boolean isRead = false;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist void onCreate() {createdAt = LocalDateTime.now();}

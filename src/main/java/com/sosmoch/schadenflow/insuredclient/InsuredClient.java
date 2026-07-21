@@ -31,7 +31,7 @@ public class InsuredClient extends SoftDeletable {
     private UUID userId;
 
     @Column(nullable = false)
-    private String dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Column(nullable = false) private String fullName;
 
@@ -51,6 +51,8 @@ public class InsuredClient extends SoftDeletable {
     private InsuredClientStatus status = InsuredClientStatus.PENDING_REGISTRATION;
 
     private LocalDateTime registeredAt;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist void onCreate() {

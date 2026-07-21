@@ -31,10 +31,10 @@ public class Claim extends SoftDeletable {
     @Column(nullable = false)
     private ProductType claimType;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(length = 2000)
+    @Column(length = 2000, nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)
@@ -43,8 +43,12 @@ public class Claim extends SoftDeletable {
 
     private UUID assignedAgentId;
 
-    private String rejectionReason;
+    private String rejectionReason; // extendable by creating claims_responses table
+
+    @Column(nullable = false)
     private LocalDateTime submittedAt;
+
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist void onCreate() {

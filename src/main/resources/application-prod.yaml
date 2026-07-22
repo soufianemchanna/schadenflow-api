@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    clean-disabled: false
+    baseline-on-migrate: false
+    validate-on-migrate: true
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: ${BREVO_USERNAME}
+    password: ${BREVO_API_KEY}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+#brevo:
+#  sender-email: ${BREVO_SENDER_EMAIL}
+#  sender-name: Schadenflow Team

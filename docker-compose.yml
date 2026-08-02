@@ -1,4 +1,4 @@
-version: '3.8'
+#version: '3.8'
 name: schadenflow
 services:
   postgres:
@@ -58,6 +58,48 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+  minio:
+    image: minio/minio:latest
+    container_name: schadenflow-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+      MINIO_CORS_ALLOW_ALL: "on"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./minio/CORSRules.xml:/cors.xml
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minio minio123; do
+        echo 'Waiting for MinIO...';
+        sleep 2;
+      done;
+
+      echo 'Creating bucket...';
+      mc mb local/claims-documents || true;
+
+      echo 'Securing bucket...';
+      mc anonymous set none local/claims-documents;
+
+      echo 'MinIO setup complete';
+      "
 volumes:
     postgres_data:
     kafka-data:
+    minio_data:

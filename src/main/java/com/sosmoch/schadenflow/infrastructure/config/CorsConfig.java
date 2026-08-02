@@ -1,4 +1,4 @@
-package com.sosmoch.schadenflow.infrastructure.web.config;
+package com.sosmoch.schadenflow.infrastructure.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

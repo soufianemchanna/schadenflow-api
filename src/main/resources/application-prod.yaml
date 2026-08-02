@@ -15,6 +15,15 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+storage:
+  endpoint: ""
+  access-key: ${AWS_ACCESS_KEY_ID}
+  secret-key: ${AWS_SECRET_ACCESS_KEY}
+  bucket-name: ${AWS_S3_BUCKET}
+  region: ${AWS_REGION}
+  path-style-access: false
+  presigned-url-expiration-minutes: 5
+
 #brevo:
 #  sender-email: ${BREVO_SENDER_EMAIL}
 #  sender-name: Schadenflow Team

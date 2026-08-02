@@ -17,3 +17,11 @@ spring:
         smtp:
           auth: false
           starttls.enable: false
+storage:
+  endpoint: http://localhost:9000
+  access-key: minio
+  secret-key: minio123
+  bucket-name: claims-documents
+  region: us-east-1
+  path-style-access: true
+  presigned-url-expiration-minutes: 10

@@ -1,7 +1,5 @@
-package com.sosmoch.schadenflow.insuredclient.internal;
+package com.sosmoch.schadenflow.insuredclient;
 
-import com.sosmoch.schadenflow.insuredclient.InsuredClient;
-import com.sosmoch.schadenflow.insuredclient.InsuredClientStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -9,9 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-interface InsuredClientRepository extends JpaRepository<InsuredClient, UUID> {
+public interface InsuredClientRepository extends JpaRepository<InsuredClient, UUID> {
 
-    Optional<InsuredClient> findInsuredClientByClientNumberAndDateOfBirthAndEmail(String clientNumber, LocalDate dateOfBirth, String email);
+    Optional<InsuredClient> findInsuredClientByClientNumberAndEmail(String clientNumber, String email);
     Optional<InsuredClient> findAllByEmail(String email);
     Optional<InsuredClient> findByUserId(UUID userId);
 

@@ -1,4 +1,4 @@
-package com.sosmoch.schadenflow.auth;
+package com.sosmoch.schadenflow.user;
 
 public enum Role {
     ADMIN,

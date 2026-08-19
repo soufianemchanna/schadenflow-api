@@ -1,4 +1,4 @@
-package com.sosmoch.schadenflow.auth;
+package com.sosmoch.schadenflow.user;
 
 import com.sosmoch.schadenflow.core.database.SoftDeletable;
 import jakarta.persistence.*;
@@ -23,7 +23,7 @@ public class User extends SoftDeletable {
     private String email;
 
     @Column(nullable = false)
-    private String password_hash;
+    private String passwordHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

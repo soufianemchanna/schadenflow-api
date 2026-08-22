@@ -1,8 +1,6 @@
 package com.sosmoch.schadenflow.claim;
 
 
-import com.sosmoch.schadenflow.agent.Agent;
-import com.sosmoch.schadenflow.insuredclient.InsuredClient;
 import com.sosmoch.schadenflow.core.database.SoftDeletable;
 import jakarta.persistence.*;
 import lombok.*;

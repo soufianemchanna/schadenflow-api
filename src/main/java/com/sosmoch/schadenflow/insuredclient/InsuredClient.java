@@ -46,6 +46,7 @@ public class InsuredClient extends SoftDeletable {
     @Column(nullable = false)
     private LocalDate startDate;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InsuredClientStatus status = InsuredClientStatus.PENDING_REGISTRATION;

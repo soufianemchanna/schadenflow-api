@@ -16,20 +16,6 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-  kafka:
-    bootstrap-servers: ${KAFKA_BROKER:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: false
-    consumer:
-      group-id: schadenflow-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: com.sosmoch.schadenflow.kafka.event
 server:
   port: 8080
 
@@ -45,10 +31,3 @@ app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: 86400000
-kafka:
-  topics:
-    submitted: claims.submitted
-    validated: claims.validated
-    rejected: claims.rejected
-    assigned: claims.assigned
-    resolved: claims.resolved

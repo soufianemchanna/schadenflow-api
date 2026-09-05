@@ -25,9 +25,8 @@ public class Claim extends SoftDeletable {
     @Column(nullable = false)
     private UUID insuredClientId;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ProductType claimType;
+    private UUID contractId;
 
     @Column(precision = 12, scale = 2)
     private BigDecimal amount;

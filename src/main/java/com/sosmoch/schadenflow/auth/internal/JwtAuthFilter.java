@@ -1,6 +1,7 @@
 package com.sosmoch.schadenflow.auth.internal;
 
-import com.sosmoch.schadenflow.user.UserRepository;
+import com.sosmoch.schadenflow.core.identity.UserPrincipal;
+import com.sosmoch.schadenflow.user.UserFacade;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,22 +9,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
+    private final UserFacade userFacade;
 
 
     @Override
@@ -45,15 +43,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }
 
-        UUID userId = jwtService.extractUserId(token);
-        String role = jwtService.extractRole(token);
+        UserPrincipal userPrincipal = new UserPrincipal(
+                jwtService.extractUserId(token),
+                jwtService.extractEmail(token),
+                jwtService.extractRole(token)
+        );
 
         if(SecurityContextHolder.getContext().getAuthentication() == null){
-            userRepository.findById(userId).ifPresent((user)->{
+            userFacade.findUserById(jwtService.extractUserId(token)).ifPresent((user)->{
                 var authToken = new UsernamePasswordAuthenticationToken(
-                        user,
+                        userPrincipal,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        userPrincipal.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

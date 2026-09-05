@@ -1,4 +1,4 @@
-package com.sosmoch.schadenflow.insuredclient;
+package com.sosmoch.schadenflow.insuredclient.enums;
 
 public enum InsuredClientStatus {
     PENDING_REGISTRATION,

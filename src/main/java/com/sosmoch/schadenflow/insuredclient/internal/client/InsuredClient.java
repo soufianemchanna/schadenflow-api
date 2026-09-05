@@ -1,7 +1,8 @@
-package com.sosmoch.schadenflow.insuredclient;
+package com.sosmoch.schadenflow.insuredclient.internal.client;
 
-import com.sosmoch.schadenflow.claim.ProductType;
 import com.sosmoch.schadenflow.core.database.SoftDeletable;
+import com.sosmoch.schadenflow.insuredclient.enums.Gender;
+import com.sosmoch.schadenflow.insuredclient.enums.InsuredClientStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -38,13 +39,6 @@ public class InsuredClient extends SoftDeletable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ProductType productType;
-
-    @Column(nullable = false)
-    private LocalDate startDate;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)

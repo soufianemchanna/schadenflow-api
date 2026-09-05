@@ -1,6 +1,7 @@
-package com.sosmoch.schadenflow.user;
+package com.sosmoch.schadenflow.user.internal;
 
 import com.sosmoch.schadenflow.core.database.SoftDeletable;
+import com.sosmoch.schadenflow.user.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;

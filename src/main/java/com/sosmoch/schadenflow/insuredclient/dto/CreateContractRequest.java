@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record CreateContractRequest(
+        @NotNull String clientNumber,
         @NotNull String contractNumber,
         @NotNull ProductType productType,
         @NotNull LocalDate startDate,

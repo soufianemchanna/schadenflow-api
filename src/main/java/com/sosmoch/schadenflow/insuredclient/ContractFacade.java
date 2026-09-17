@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ContractFacade {
-    ContractResponse createContract(UUID insuredClientId, CreateContractRequest request);
+    ContractResponse createContract(CreateContractRequest request);
     ContractResponse getContract(UUID id);
     List<ContractResponse> getContractsForClient(UUID insuredClientId);
     // Used by claim module at submission time

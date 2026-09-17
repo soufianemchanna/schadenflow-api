@@ -38,9 +38,10 @@ public class Contract extends SoftDeletable {
     @Column(nullable = false)
     private ProductType productType;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ContractStatus status;
+    private ContractStatus status = ContractStatus.ACTIVE;
 
     @Column(nullable = false)
     private LocalDate startDate;

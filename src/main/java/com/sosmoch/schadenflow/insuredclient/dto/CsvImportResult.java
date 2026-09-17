@@ -6,7 +6,6 @@ public record CsvImportResult(
         int totalRows,
         int createdRows,
         int failedRows,
-        List<RowError> errors
+        List<CsvRowError> errors
 ) {
-    public record RowError(int rowNumber, String reason) {}
 }

@@ -1,12 +1,14 @@
 package com.sosmoch.schadenflow.insuredclient.internal.client;
 
 
+import com.sosmoch.schadenflow.core.job.AsyncJob;
+import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.insuredclient.InsuredClientFacade;
-import com.sosmoch.schadenflow.insuredclient.dto.CreateInsuredClientRequest;
-import com.sosmoch.schadenflow.insuredclient.dto.InsuredClientView;
+import com.sosmoch.schadenflow.insuredclient.dto.*;
 import com.sosmoch.schadenflow.insuredclient.enums.InsuredClientStatus;
-import com.sosmoch.schadenflow.insuredclient.dto.InsuredClientRepsonse;
 import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
+import com.sosmoch.schadenflow.insuredclient.internal.csv.ClientCsvImportStrategy;
+import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ import java.util.UUID;
 @Slf4j
 public class InsuredClientService implements InsuredClientFacade {
     private final InsuredClientRepository insuredClientRepository;
+    private final CsvImportService csvImportService;
+    private final ClientCsvImportStrategy clientCsvImportStrategy;
     @Override
     public Optional<InsuredClientView> verifyClientHasIdentity(String clientNumber, String email) {
         InsuredClient client = insuredClientRepository.
@@ -71,7 +75,32 @@ public class InsuredClientService implements InsuredClientFacade {
         insuredClientRepository.save(client);
     }
 
+
+    public UUID startClientImport(byte[] fileContent){
+        AsyncJob job = csvImportService.createJob();
+        csvImportService.processCsv(job.getId(), fileContent, clientCsvImportStrategy);
+        return job.getId();
+    }
+
+    public AsyncJobDto getClientImportStatus(UUID jobId){
+        return csvImportService.getContractsImportStatus(jobId);
+    }
+
+    public InsuredClientRepsonse createInsuredClient(CreateInsuredClientRequest request) {
+        InsuredClient client = InsuredClient.builder()
+                        .clientNumber(request.clientNumber())
+                        .fullName(request.fullName())
+                        .gender(request.gender())
+                        .dateOfBirth(request.dateOfBirth())
+                        .email(request.email())
+                        .status(request.status())
+                        .build();
+
+        return toInsuredClientResponse(insuredClientRepository.save(client));
+    }
+
     private InsuredClientRepsonse toInsuredClientResponse(InsuredClient insuredClient){
         return InsuredClientRepsonse.from(insuredClient);
     }
 }
+

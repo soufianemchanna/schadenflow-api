@@ -1,5 +1,7 @@
 package com.sosmoch.schadenflow.insuredclient.internal.contract;
 
+import com.sosmoch.schadenflow.core.job.AsyncJob;
+import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.insuredclient.*;
 import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
@@ -10,6 +12,8 @@ import com.sosmoch.schadenflow.insuredclient.exceptions.InactiveContractExceptio
 import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
 import com.sosmoch.schadenflow.insuredclient.internal.client.InsuredClient;
 import com.sosmoch.schadenflow.insuredclient.internal.client.InsuredClientRepository;
+import com.sosmoch.schadenflow.insuredclient.internal.csv.ContractCsvImportStrategy;
+import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,12 +28,14 @@ import java.util.UUID;
 public class ContractService implements ContractFacade {
     private final ContractRepository contractRepository;
     private final InsuredClientRepository insuredClientRepository;
+    private final CsvImportService csvImportService;
+    private final ContractCsvImportStrategy contractCsvImportStrategy;
 
     @Override
     @Transactional
-    public ContractResponse createContract(UUID insuredClientId, CreateContractRequest request) {
-        InsuredClient client = insuredClientRepository.findById(insuredClientId).orElseThrow(
-                () -> new InsuredClientNotFoundException(insuredClientId.toString())
+    public ContractResponse createContract(CreateContractRequest request) {
+        InsuredClient client = insuredClientRepository.findInsuredClientByClientNumber(request.clientNumber()).orElseThrow(
+                () -> new InsuredClientNotFoundException(request.clientNumber())
         );
 
         Contract contract = Contract.builder()
@@ -71,6 +77,16 @@ public class ContractService implements ContractFacade {
             throw new InactiveContractException(contractId);
         }
         return toContractResponse(contract);
+    }
+
+    public UUID startContractImport(byte[] fileContent){
+        AsyncJob job = csvImportService.createJob();
+        csvImportService.processCsv(job.getId(), fileContent, contractCsvImportStrategy);
+        return job.getId();
+    }
+
+    public AsyncJobDto getContractsImportStatus(UUID jobId){
+        return csvImportService.getContractsImportStatus(jobId);
     }
 
     private ContractResponse toContractResponse(Contract c) {

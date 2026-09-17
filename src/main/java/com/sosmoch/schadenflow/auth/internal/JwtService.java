@@ -1,7 +1,7 @@
 package com.sosmoch.schadenflow.auth.internal;
 
 
-import com.sosmoch.schadenflow.user.User;
+import com.sosmoch.schadenflow.user.UserView;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -23,15 +24,16 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(User user) {
-        return Jwts.builder()
-                .subject(user.getId().toString())
-                .claim("email", user.getEmail())
-                .claim("role", user.getUserRole().name())
+    public String generateToken(Optional<UserView> user) {
+        return user.map(u -> Jwts.builder()
+                .subject(user.get().id().toString())
+                .claim("email", user.get().email())
+                .claim("role", user.get().role().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
-                .compact();
+                .compact())
+                .orElseThrow(() -> new IllegalArgumentException("User must be present to generate token"));
     }
 
     Claims extractClaims(String token) {
@@ -48,6 +50,10 @@ public class JwtService {
 
     String extractRole(String token) {
         return extractClaims(token).get("role", String.class);
+    }
+
+    String extractEmail(String token) {
+        return extractClaims(token).get("email", String.class);
     }
 
     boolean isTokenValid(String token) {

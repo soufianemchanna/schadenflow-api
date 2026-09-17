@@ -1,4 +1,4 @@
-package com.sosmoch.schadenflow.user;
+package com.sosmoch.schadenflow.user.internal;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

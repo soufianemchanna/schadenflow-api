@@ -5,11 +5,13 @@ import com.sosmoch.schadenflow.auth.dto.AuthResponse;
 import com.sosmoch.schadenflow.auth.dto.LoginRequest;
 import com.sosmoch.schadenflow.auth.dto.RegisterRequest;
 import com.sosmoch.schadenflow.auth.internal.JwtService;
-import com.sosmoch.schadenflow.insuredclient.InsuredClientRepository;
-import com.sosmoch.schadenflow.insuredclient.InsuredClientStatus;
+import com.sosmoch.schadenflow.core.identity.UserPrincipal;
+import com.sosmoch.schadenflow.insuredclient.InsuredClientFacade;
+import com.sosmoch.schadenflow.insuredclient.dto.InsuredClientView;
+import com.sosmoch.schadenflow.user.CreateUserCommand;
 import com.sosmoch.schadenflow.user.Role;
-import com.sosmoch.schadenflow.user.User;
-import com.sosmoch.schadenflow.user.UserRepository;
+import com.sosmoch.schadenflow.user.UserFacade;
+import com.sosmoch.schadenflow.user.UserView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,14 +19,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthService {
-    private final UserRepository userRepository;
-    private final InsuredClientRepository insuredClientRepository;
+public class AuthService implements AuthFacade{
+    private final UserFacade userFacade;
+    private final InsuredClientFacade insuredClientFacade;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
@@ -33,62 +35,73 @@ public class AuthService {
         // 1/ identity check client number / email
         log.info("Registering client with client number: {}", request.clientNumber());
         log.info("Registering client with email: {}", request.email());
-        var insuredClient = insuredClientRepository.findInsuredClientByClientNumberAndEmail(
+        Optional<InsuredClientView> clientView = insuredClientFacade.verifyClientHasIdentity(
                 request.clientNumber(), request.email()
-        ).orElseThrow(()-> new IdentityVerificationException(
-                "We could not verify your identity. Please contact your insurer."
-        ));
+        );
+
+        if(clientView.isEmpty()){
+            throw new IdentityVerificationException(
+                    "Client number or email is not registered."
+            );
+        }
 
         // 2/ check already has an account
-        if(insuredClient.getUserId() != null){
+        if(clientView.get().userId() != null){
             throw new IdentityVerificationException(
                     "An account already exists for this client number."
             );
         }
 
         // 3/ create user
-        var user = new User();
-        user.setEmail(request.email());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setUserRole(Role.CLIENT);
-        var savedUser = userRepository.save(user);
+        CreateUserCommand user = new CreateUserCommand(
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                Role.CLIENT
+        );
+
+        UserView savedUser = userFacade.createUser(user);
 
         // 4/ link user to insured client
-        insuredClient.setUserId(savedUser.getId());
-        insuredClient.setStatus(InsuredClientStatus.ACTIVE);
-        insuredClient.setRegisteredAt(LocalDateTime.now());
-        insuredClientRepository.save(insuredClient);
+        insuredClientFacade.activateClientAccount(savedUser.id(), clientView.get().id());
 
         return new AuthResponse(
-                jwtService.generateToken(savedUser),
-                savedUser.getId(),
-                savedUser.getEmail(),
-                savedUser.getUserRole()
+                jwtService.generateToken(Optional.of(savedUser)),
+                savedUser.id(),
+                savedUser.email(),
+                savedUser.role()
         );
     }
 
     public AuthResponse login(LoginRequest request){
-        var user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BadCredentialsException("Invalid email or password."));
+        Optional<UserView> user = userFacade.findUserByEmail(request.email());
 
-        if(!passwordEncoder.matches(request.password(), user.getPasswordHash())){
+        if (user.isEmpty()){
+            throw  new BadCredentialsException("Invalid email or password.");
+        }
+
+        if(!passwordEncoder.matches(request.password(), user.get().password())){
             throw new BadCredentialsException("Invalid email or password.");
         }
 
         return new AuthResponse(
                 jwtService.generateToken(user),
-                user.getId(),
-                user.getEmail(),
-                user.getUserRole()
+                user.get().id(),
+                user.get().email(),
+                user.get().role()
         );
     }
 
-    public AuthResponse me(User currentUser) {
+    public AuthResponse me(UserPrincipal currentUser) {
         return new AuthResponse(
                 null,
-                currentUser.getId(),
-                currentUser.getEmail(),
-                currentUser.getUserRole()
+                currentUser.id(),
+                currentUser.email(),
+                Role.valueOf(currentUser.role())
         );
+    }
+
+    @Override
+    public PasswordEncoder passwordEncoder() {
+        return passwordEncoder;
     }
 }

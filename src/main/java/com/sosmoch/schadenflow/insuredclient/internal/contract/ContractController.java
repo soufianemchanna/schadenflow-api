@@ -7,6 +7,9 @@ import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,9 +17,9 @@ import java.io.IOException;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/contracts")
+@RequestMapping("/api/admin/contracts")
 @RequiredArgsConstructor
-@Tag(name = "Contract", description = "Contract operations")
+@Tag(name = "Admin / Contract", description = "Contract operations")
 public class ContractController {
     private final ContractService contractService;
 
@@ -37,6 +40,13 @@ public class ContractController {
     @PostMapping("/create-contract")
     public ContractResponse createSingleContract(@RequestBody CreateContractRequest request){
         return contractService.createContract(request);
+    }
+
+    @GetMapping
+    public Page<ContractResponse> list(
+            @PageableDefault(size = 20, sort = "startDate") Pageable pageable
+    ){
+        return contractService.getAll(pageable);
     }
 
 }

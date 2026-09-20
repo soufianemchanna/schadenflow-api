@@ -16,6 +16,8 @@ import com.sosmoch.schadenflow.insuredclient.internal.csv.ContractCsvImportStrat
 import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +89,10 @@ public class ContractService implements ContractFacade {
 
     public AsyncJobDto getContractsImportStatus(UUID jobId){
         return csvImportService.getContractsImportStatus(jobId);
+    }
+
+    public Page<ContractResponse> getAll(Pageable pageable){
+        return contractRepository.findAll(pageable).map(this::toContractResponse);
     }
 
     private ContractResponse toContractResponse(Contract c) {

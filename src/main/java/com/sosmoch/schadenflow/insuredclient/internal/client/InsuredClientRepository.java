@@ -1,6 +1,8 @@
 package com.sosmoch.schadenflow.insuredclient.internal.client;
 
 import com.sosmoch.schadenflow.insuredclient.enums.InsuredClientStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -16,6 +18,6 @@ public interface InsuredClientRepository extends JpaRepository<InsuredClient, UU
 
     boolean existsByClientNumber(String clientNumber);
 
-    List<InsuredClient> findByStatus(InsuredClientStatus status);
+    Page<InsuredClient> findByStatus(InsuredClientStatus status, Pageable pageable);
 
 }

@@ -11,6 +11,8 @@ import com.sosmoch.schadenflow.insuredclient.internal.csv.ClientCsvImportStrateg
 import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -99,8 +101,18 @@ public class InsuredClientService implements InsuredClientFacade {
         return toInsuredClientResponse(insuredClientRepository.save(client));
     }
 
+    public Page<InsuredClientRepsonse> getAll(InsuredClientStatus status, Pageable pageable){
+        Page<InsuredClient> page = (status != null)
+                ? insuredClientRepository.findByStatus(status, pageable)
+                : insuredClientRepository.findAll(pageable);
+        return page.map(this::toInsuredClientResponse);
+
+    }
+
     private InsuredClientRepsonse toInsuredClientResponse(InsuredClient insuredClient){
         return InsuredClientRepsonse.from(insuredClient);
     }
+
+
 }
 

@@ -5,6 +5,7 @@ import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.core.job.AsyncJobStatus;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateInsuredClientRequest;
 import com.sosmoch.schadenflow.insuredclient.dto.InsuredClientRepsonse;
+import com.sosmoch.schadenflow.insuredclient.dto.SuspendClientRequest;
 import com.sosmoch.schadenflow.insuredclient.enums.InsuredClientStatus;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,16 @@ public class InsuredClientController {
             @PageableDefault(size = 20, sort = "fullName") Pageable pageable
             ){
         return insuredClientService.getAll(status, pageable);
+    }
+
+    @PatchMapping("/status/{id}/suspend")
+    public InsuredClientRepsonse suspendClient(@PathVariable UUID id, @RequestBody SuspendClientRequest request){
+        return insuredClientService.updateStatus(InsuredClientStatus.SUSPENDED, id);
+    }
+
+    @PatchMapping("/status/{id}/reactive")
+    public InsuredClientRepsonse reactiveClient(@PathVariable UUID id){
+        return insuredClientService.updateStatus(InsuredClientStatus.ACTIVE, id);
     }
 
 

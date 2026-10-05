@@ -30,6 +30,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
                                     throws ServletException, IOException {
 
+        // precheck if already security context well set
+        if(SecurityContextHolder.getContext().getAuthentication() != null){
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){

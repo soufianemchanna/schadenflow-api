@@ -7,6 +7,7 @@ import com.sosmoch.schadenflow.insuredclient.InsuredClientFacade;
 import com.sosmoch.schadenflow.insuredclient.dto.*;
 import com.sosmoch.schadenflow.insuredclient.enums.InsuredClientStatus;
 import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
+import com.sosmoch.schadenflow.insuredclient.exceptions.InvalidClientTransitionException;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.ClientCsvImportStrategy;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
 import lombok.RequiredArgsConstructor;
@@ -107,6 +108,19 @@ public class InsuredClientService implements InsuredClientFacade {
                 : insuredClientRepository.findAll(pageable);
         return page.map(this::toInsuredClientResponse);
 
+    }
+
+    public InsuredClientRepsonse updateStatus(InsuredClientStatus status, UUID id){
+        InsuredClient client = insuredClientRepository.findById(id).orElseThrow(
+                () -> new InsuredClientNotFoundException(id.toString())
+        );
+
+        if(client.getStatus().equals(InsuredClientStatus.PENDING_REGISTRATION)){
+            throw new InvalidClientTransitionException(id, client.getStatus(), status);
+        }
+
+        client.setStatus(status);
+        return toInsuredClientResponse(insuredClientRepository.save(client));
     }
 
     private InsuredClientRepsonse toInsuredClientResponse(InsuredClient insuredClient){

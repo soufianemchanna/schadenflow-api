@@ -20,8 +20,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
+    private final ApiKeyAuthFilter apiKeyAuthFilter;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomAuthEntryPoint customAuthEntryPoint;
+
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -30,16 +32,19 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
                                         "/api/auth/**",
+                                        "/error",
+                                        "/actuator/health",
+                                        "/api-docs/**",
                                         "/swagger-ui/**",
-                                        "/swagger-ui.html",
-                                        "/v3/api-docs/**",
-                                        "/actuator/health"
+                                        "/swagger-ui.html"
                                 ).permitAll()
 
                                 // single role based
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/client/**").hasRole("CLIENT")
                                 .requestMatchers("/api/agent/**").hasRole("AGENT")
+                                // external calls
+                                .requestMatchers("/api/external/**").hasAuthority("EXTERNAL_SERVICE")
                                 // shared roles
                                 .requestMatchers("/api/claims/**").hasAnyRole("ADMIN", "CLIENT", "AGENT")
                                 .requestMatchers("/api/notification/**").hasAnyRole( "CLIENT", "AGENT")
@@ -51,7 +56,8 @@ public class SecurityConfig {
                                 .accessDeniedHandler(customAccessDeniedHandler)
                                 .authenticationEntryPoint(customAuthEntryPoint)
                         )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(apiKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

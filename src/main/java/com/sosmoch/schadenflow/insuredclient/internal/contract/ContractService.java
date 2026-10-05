@@ -6,10 +6,7 @@ import com.sosmoch.schadenflow.insuredclient.*;
 import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
 import com.sosmoch.schadenflow.insuredclient.enums.ContractStatus;
-import com.sosmoch.schadenflow.insuredclient.exceptions.ContractNotFoundException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.ContractOwnershipMismatchException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.InactiveContractException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
+import com.sosmoch.schadenflow.insuredclient.exceptions.*;
 import com.sosmoch.schadenflow.insuredclient.internal.client.InsuredClient;
 import com.sosmoch.schadenflow.insuredclient.internal.client.InsuredClientRepository;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.ContractCsvImportStrategy;
@@ -21,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,7 +53,7 @@ public class ContractService implements ContractFacade {
     @Override
     public ContractResponse getContract(UUID id) {
         return toContractResponse(contractRepository.findById(id).orElseThrow(
-                () -> new ContractNotFoundException(id)
+                () -> new ContractNotFoundException(id.toString())
         ));
     }
 
@@ -68,7 +66,7 @@ public class ContractService implements ContractFacade {
     @Override
     public ContractResponse validateContractForClaim(UUID contractId, UUID insuredClientId) {
         Contract contract = contractRepository.findById(contractId).orElseThrow(
-                () -> new ContractNotFoundException(contractId)
+                () -> new ContractNotFoundException(contractId.toString())
         );
 
         if(!contract.getInsuredClient().getId().equals(insuredClientId)){
@@ -76,9 +74,42 @@ public class ContractService implements ContractFacade {
         }
 
         if(contract.getStatus() != ContractStatus.ACTIVE){
-            throw new InactiveContractException(contractId);
+            throw new InactiveContractException(contractId.toString());
         }
         return toContractResponse(contract);
+    }
+
+    @Override
+    public ContractResponse suspendFromExternalSystem(String contractNumber, String reason) {
+        Contract contract = contractRepository.findByContractNumber(contractNumber).orElseThrow(
+                () -> new ContractNotFoundException(contractNumber)
+        );
+
+        if(contract.getStatus() != ContractStatus.ACTIVE){
+            throw new InactiveContractException(contractNumber);
+        }
+
+        contract.setStatus(ContractStatus.SUSPENDED);
+        return toContractResponse(contractRepository.save(contract));
+    }
+
+    @Override
+    public ContractResponse reactiveFromExternalSystem(String contractNumber, LocalDate newEndDate) {
+        Contract contract = contractRepository.findByContractNumber(contractNumber).orElseThrow(
+                () -> new ContractNotFoundException(contractNumber)
+        );
+
+        if(contract.getStatus() != ContractStatus.SUSPENDED && contract.getStatus() != ContractStatus.EXPIRED){
+            throw new InvalidContractTransitionException(contractNumber, contract.getStatus(), ContractStatus.ACTIVE);
+        }
+
+        if(contract.getStatus() == ContractStatus.EXPIRED){
+            contract.setEndDate(newEndDate != null ? newEndDate : LocalDate.now().plusYears(1));
+        }
+
+        contract.setStatus(ContractStatus.ACTIVE);
+        return toContractResponse(contractRepository.save(contract));
+
     }
 
     public UUID startContractImport(byte[] fileContent){
@@ -93,6 +124,14 @@ public class ContractService implements ContractFacade {
 
     public Page<ContractResponse> getAll(Pageable pageable){
         return contractRepository.findAll(pageable).map(this::toContractResponse);
+    }
+
+    public ContractResponse updateContractStatus(UUID id, ContractStatus status){
+        Contract contract = contractRepository.findById(id).orElseThrow(
+                () -> new ContractNotFoundException(id.toString())
+        );
+        contract.setStatus(status);
+        return toContractResponse(contractRepository.save(contract));
     }
 
     private ContractResponse toContractResponse(Contract c) {

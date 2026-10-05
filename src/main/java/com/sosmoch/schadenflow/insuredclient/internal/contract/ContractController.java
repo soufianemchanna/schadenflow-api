@@ -5,6 +5,7 @@ import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.core.job.AsyncJobStatus;
 import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
+import com.sosmoch.schadenflow.insuredclient.enums.ContractStatus;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,10 +37,15 @@ public class ContractController {
         return contractService.getContractsImportStatus(jobId);
     }
 
-    // create by admin MANUALLY(one contract - ui)
+    // create by admin MANUALLY(one contract - ui OR webservice)
     @PostMapping("/create-contract")
     public ContractResponse createSingleContract(@RequestBody CreateContractRequest request){
         return contractService.createContract(request);
+    }
+
+    @PatchMapping("/status/{id}/cancel")
+    public ContractResponse cancelSingleContract(@PathVariable UUID id){
+        return contractService.updateContractStatus(id, ContractStatus.CANCELLED);
     }
 
     @GetMapping

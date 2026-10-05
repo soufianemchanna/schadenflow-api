@@ -3,6 +3,6 @@ package com.sosmoch.schadenflow.insuredclient.exceptions;
 import java.util.UUID;
 
 public class InactiveContractException extends RuntimeException {
-    public InactiveContractException(UUID contractId) {
+    public InactiveContractException(String identifier) {
     }
 }

@@ -2,10 +2,7 @@ package com.sosmoch.schadenflow.infrastructure.exception;
 
 
 import com.sosmoch.schadenflow.auth.IdentityVerificationException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.ContractNotFoundException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.ContractOwnershipMismatchException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.InactiveContractException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
+import com.sosmoch.schadenflow.insuredclient.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -51,6 +48,12 @@ public class GlobalHandlerException {
     public ResponseEntity<ErrorResponse> handleContractOwnershipMismatch(ContractOwnershipMismatchException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidClientTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidClientTransition(InvalidClientTransitionException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
 }

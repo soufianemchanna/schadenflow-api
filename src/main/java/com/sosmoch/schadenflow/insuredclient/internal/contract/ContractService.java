@@ -3,7 +3,7 @@ package com.sosmoch.schadenflow.insuredclient.internal.contract;
 import com.sosmoch.schadenflow.core.job.AsyncJob;
 import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.insuredclient.*;
-import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
+import com.sosmoch.schadenflow.insuredclient.dto.ContractView;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
 import com.sosmoch.schadenflow.insuredclient.enums.ContractStatus;
 import com.sosmoch.schadenflow.insuredclient.exceptions.*;
@@ -33,7 +33,7 @@ public class ContractService implements ContractFacade {
 
     @Override
     @Transactional
-    public ContractResponse createContract(CreateContractRequest request) {
+    public ContractView createContract(CreateContractRequest request) {
         InsuredClient client = insuredClientRepository.findInsuredClientByClientNumber(request.clientNumber()).orElseThrow(
                 () -> new InsuredClientNotFoundException(request.clientNumber())
         );
@@ -51,20 +51,20 @@ public class ContractService implements ContractFacade {
     }
 
     @Override
-    public ContractResponse getContract(UUID id) {
+    public ContractView getContract(UUID id) {
         return toContractResponse(contractRepository.findById(id).orElseThrow(
                 () -> new ContractNotFoundException(id.toString())
         ));
     }
 
     @Override
-    public List<ContractResponse> getContractsForClient(UUID insuredClientId) {
+    public List<ContractView> getContractsForClient(UUID insuredClientId) {
         return contractRepository.findByInsuredClientId(insuredClientId).stream()
                 .map(this::toContractResponse).toList();
     }
 
     @Override
-    public ContractResponse validateContractForClaim(UUID contractId, UUID insuredClientId) {
+    public ContractView validateContractForClaim(UUID contractId, UUID insuredClientId) {
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new ContractNotFoundException(contractId.toString())
         );
@@ -80,7 +80,7 @@ public class ContractService implements ContractFacade {
     }
 
     @Override
-    public ContractResponse suspendFromExternalSystem(String contractNumber, String reason) {
+    public ContractView suspendFromExternalSystem(String contractNumber, String reason) {
         Contract contract = contractRepository.findByContractNumber(contractNumber).orElseThrow(
                 () -> new ContractNotFoundException(contractNumber)
         );
@@ -94,7 +94,7 @@ public class ContractService implements ContractFacade {
     }
 
     @Override
-    public ContractResponse reactiveFromExternalSystem(String contractNumber, LocalDate newEndDate) {
+    public ContractView reactiveFromExternalSystem(String contractNumber, LocalDate newEndDate) {
         Contract contract = contractRepository.findByContractNumber(contractNumber).orElseThrow(
                 () -> new ContractNotFoundException(contractNumber)
         );
@@ -122,11 +122,11 @@ public class ContractService implements ContractFacade {
         return csvImportService.getContractsImportStatus(jobId);
     }
 
-    public Page<ContractResponse> getAll(Pageable pageable){
+    public Page<ContractView> getAll(Pageable pageable){
         return contractRepository.findAll(pageable).map(this::toContractResponse);
     }
 
-    public ContractResponse updateContractStatus(UUID id, ContractStatus status){
+    public ContractView updateContractStatus(UUID id, ContractStatus status){
         Contract contract = contractRepository.findById(id).orElseThrow(
                 () -> new ContractNotFoundException(id.toString())
         );
@@ -134,8 +134,8 @@ public class ContractService implements ContractFacade {
         return toContractResponse(contractRepository.save(contract));
     }
 
-    private ContractResponse toContractResponse(Contract c) {
-        return new ContractResponse(
+    private ContractView toContractResponse(Contract c) {
+        return new ContractView(
                 c.getId(), c.getContractNumber(), c.getInsuredClient().getId(),
                 c.getProductType(), c.getStatus(), c.getStartDate(), c.getEndDate()
         );

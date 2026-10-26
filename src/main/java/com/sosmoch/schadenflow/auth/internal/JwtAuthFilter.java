@@ -48,6 +48,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if(!jwtService.isTokenValid(token)){
             filterChain.doFilter(request, response);
+            return;
         }
 
         UserPrincipal userPrincipal = new UserPrincipal(

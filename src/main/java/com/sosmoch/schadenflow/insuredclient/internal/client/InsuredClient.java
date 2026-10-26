@@ -26,7 +26,7 @@ public class InsuredClient extends SoftDeletable {
     @Column(nullable = false, unique = true)
     private String clientNumber;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     private UUID userId;

@@ -1,0 +1,2 @@
+ALTER TABLE agents
+    ADD active BOOLEAN DEFAULT true NOT NULL;

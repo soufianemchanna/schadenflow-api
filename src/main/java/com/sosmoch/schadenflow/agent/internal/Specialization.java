@@ -1,4 +1,4 @@
-package com.sosmoch.schadenflow.agent;
+package com.sosmoch.schadenflow.agent.internal;
 
 public enum Specialization {
     MOTOR_VEHICLE,

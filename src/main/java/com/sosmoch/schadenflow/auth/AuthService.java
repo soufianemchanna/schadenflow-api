@@ -83,6 +83,10 @@ public class AuthService implements AuthFacade{
             throw new BadCredentialsException("Invalid email or password.");
         }
 
+        if(!user.get().enabled()){
+            throw new AccountDisabledException("Account is disabled. Please contact support.");
+        }
+
         return new AuthResponse(
                 jwtService.generateToken(user),
                 user.get().id(),

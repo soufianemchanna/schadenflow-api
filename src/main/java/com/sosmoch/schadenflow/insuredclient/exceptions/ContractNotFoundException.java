@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public class ContractNotFoundException extends RuntimeException {
     public ContractNotFoundException(String identifier) {
+        super("Contract with identifier " + identifier + " not found.");
     }
 }

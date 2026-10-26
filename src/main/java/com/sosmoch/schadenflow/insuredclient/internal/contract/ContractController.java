@@ -3,7 +3,7 @@ package com.sosmoch.schadenflow.insuredclient.internal.contract;
 
 import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.core.job.AsyncJobStatus;
-import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
+import com.sosmoch.schadenflow.insuredclient.dto.ContractView;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
 import com.sosmoch.schadenflow.insuredclient.enums.ContractStatus;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,17 +39,17 @@ public class ContractController {
 
     // create by admin MANUALLY(one contract - ui OR webservice)
     @PostMapping("/create-contract")
-    public ContractResponse createSingleContract(@RequestBody CreateContractRequest request){
+    public ContractView createSingleContract(@RequestBody CreateContractRequest request){
         return contractService.createContract(request);
     }
 
     @PatchMapping("/status/{id}/cancel")
-    public ContractResponse cancelSingleContract(@PathVariable UUID id){
+    public ContractView cancelSingleContract(@PathVariable UUID id){
         return contractService.updateContractStatus(id, ContractStatus.CANCELLED);
     }
 
     @GetMapping
-    public Page<ContractResponse> list(
+    public Page<ContractView> list(
             @PageableDefault(size = 20, sort = "startDate") Pageable pageable
     ){
         return contractService.getAll(pageable);

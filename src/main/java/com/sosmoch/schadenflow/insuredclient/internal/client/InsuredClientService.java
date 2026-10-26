@@ -10,11 +10,13 @@ import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundExc
 import com.sosmoch.schadenflow.insuredclient.exceptions.InvalidClientTransitionException;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.ClientCsvImportStrategy;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
+import com.sosmoch.schadenflow.user.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +30,8 @@ public class InsuredClientService implements InsuredClientFacade {
     private final InsuredClientRepository insuredClientRepository;
     private final CsvImportService csvImportService;
     private final ClientCsvImportStrategy clientCsvImportStrategy;
+    private final UserFacade userFacade;
+
     @Override
     public Optional<InsuredClientView> verifyClientHasIdentity(String clientNumber, String email) {
         InsuredClient client = insuredClientRepository.
@@ -110,6 +114,7 @@ public class InsuredClientService implements InsuredClientFacade {
 
     }
 
+    @Transactional
     public InsuredClientRepsonse updateStatus(InsuredClientStatus status, UUID id){
         InsuredClient client = insuredClientRepository.findById(id).orElseThrow(
                 () -> new InsuredClientNotFoundException(id.toString())
@@ -120,6 +125,12 @@ public class InsuredClientService implements InsuredClientFacade {
         }
 
         client.setStatus(status);
+        if(status.equals(InsuredClientStatus.SUSPENDED)){
+            userFacade.disableUser(client.getUserId());
+        }
+        else {
+            userFacade.enableUser(client.getUserId());
+        }
         return toInsuredClientResponse(insuredClientRepository.save(client));
     }
 

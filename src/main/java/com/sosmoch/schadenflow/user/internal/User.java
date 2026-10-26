@@ -20,7 +20,7 @@ public class User extends SoftDeletable {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
@@ -34,6 +34,9 @@ public class User extends SoftDeletable {
     private LocalDateTime createdAt;
 
     private LocalDateTime lastLogin;
+
+    @Builder.Default
+    private boolean enabled = true;
 
     @PrePersist
     void onCreate(){createdAt = LocalDateTime.now();}

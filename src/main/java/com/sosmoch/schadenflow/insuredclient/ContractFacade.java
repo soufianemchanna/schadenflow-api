@@ -1,6 +1,6 @@
 package com.sosmoch.schadenflow.insuredclient;
 
-import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
+import com.sosmoch.schadenflow.insuredclient.dto.ContractView;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
 
 import java.time.LocalDate;
@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ContractFacade {
-    ContractResponse createContract(CreateContractRequest request);
-    ContractResponse getContract(UUID id);
-    List<ContractResponse> getContractsForClient(UUID insuredClientId);
+    ContractView createContract(CreateContractRequest request);
+    ContractView getContract(UUID id);
+    List<ContractView> getContractsForClient(UUID insuredClientId);
     // Used by claim module at submission time
-    ContractResponse validateContractForClaim(UUID contractId, UUID insuredClientId);
+    ContractView validateContractForClaim(UUID contractId, UUID insuredClientId);
     // Used by external system call
-    ContractResponse suspendFromExternalSystem(String contractNumber, String reason);
-    ContractResponse reactiveFromExternalSystem(String contractNumber, LocalDate newEndDate);
+    ContractView suspendFromExternalSystem(String contractNumber, String reason);
+    ContractView reactiveFromExternalSystem(String contractNumber, LocalDate newEndDate);
 }

@@ -3,22 +3,22 @@ package com.sosmoch.schadenflow.insuredclient.internal.contract;
 import com.sosmoch.schadenflow.core.job.AsyncJob;
 import com.sosmoch.schadenflow.core.job.AsyncJobDto;
 import com.sosmoch.schadenflow.insuredclient.*;
-import com.sosmoch.schadenflow.insuredclient.dto.ContractResponse;
+import com.sosmoch.schadenflow.insuredclient.dto.ContractView;
 import com.sosmoch.schadenflow.insuredclient.dto.CreateContractRequest;
 import com.sosmoch.schadenflow.insuredclient.enums.ContractStatus;
-import com.sosmoch.schadenflow.insuredclient.exceptions.ContractNotFoundException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.ContractOwnershipMismatchException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.InactiveContractException;
-import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
+import com.sosmoch.schadenflow.insuredclient.exceptions.*;
 import com.sosmoch.schadenflow.insuredclient.internal.client.InsuredClient;
 import com.sosmoch.schadenflow.insuredclient.internal.client.InsuredClientRepository;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.ContractCsvImportStrategy;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ public class ContractService implements ContractFacade {
 
     @Override
     @Transactional
-    public ContractResponse createContract(CreateContractRequest request) {
+    public ContractView createContract(CreateContractRequest request) {
         InsuredClient client = insuredClientRepository.findInsuredClientByClientNumber(request.clientNumber()).orElseThrow(
                 () -> new InsuredClientNotFoundException(request.clientNumber())
         );
@@ -51,22 +51,22 @@ public class ContractService implements ContractFacade {
     }
 
     @Override
-    public ContractResponse getContract(UUID id) {
+    public ContractView getContract(UUID id) {
         return toContractResponse(contractRepository.findById(id).orElseThrow(
-                () -> new ContractNotFoundException(id)
+                () -> new ContractNotFoundException(id.toString())
         ));
     }
 
     @Override
-    public List<ContractResponse> getContractsForClient(UUID insuredClientId) {
+    public List<ContractView> getContractsForClient(UUID insuredClientId) {
         return contractRepository.findByInsuredClientId(insuredClientId).stream()
                 .map(this::toContractResponse).toList();
     }
 
     @Override
-    public ContractResponse validateContractForClaim(UUID contractId, UUID insuredClientId) {
+    public ContractView validateContractForClaim(UUID contractId, UUID insuredClientId) {
         Contract contract = contractRepository.findById(contractId).orElseThrow(
-                () -> new ContractNotFoundException(contractId)
+                () -> new ContractNotFoundException(contractId.toString())
         );
 
         if(!contract.getInsuredClient().getId().equals(insuredClientId)){
@@ -74,9 +74,42 @@ public class ContractService implements ContractFacade {
         }
 
         if(contract.getStatus() != ContractStatus.ACTIVE){
-            throw new InactiveContractException(contractId);
+            throw new InactiveContractException(contractId.toString());
         }
         return toContractResponse(contract);
+    }
+
+    @Override
+    public ContractView suspendFromExternalSystem(String contractNumber, String reason) {
+        Contract contract = contractRepository.findByContractNumber(contractNumber).orElseThrow(
+                () -> new ContractNotFoundException(contractNumber)
+        );
+
+        if(contract.getStatus() != ContractStatus.ACTIVE){
+            throw new InactiveContractException(contractNumber);
+        }
+
+        contract.setStatus(ContractStatus.SUSPENDED);
+        return toContractResponse(contractRepository.save(contract));
+    }
+
+    @Override
+    public ContractView reactiveFromExternalSystem(String contractNumber, LocalDate newEndDate) {
+        Contract contract = contractRepository.findByContractNumber(contractNumber).orElseThrow(
+                () -> new ContractNotFoundException(contractNumber)
+        );
+
+        if(contract.getStatus() != ContractStatus.SUSPENDED && contract.getStatus() != ContractStatus.EXPIRED){
+            throw new InvalidContractTransitionException(contractNumber, contract.getStatus(), ContractStatus.ACTIVE);
+        }
+
+        if(contract.getStatus() == ContractStatus.EXPIRED){
+            contract.setEndDate(newEndDate != null ? newEndDate : LocalDate.now().plusYears(1));
+        }
+
+        contract.setStatus(ContractStatus.ACTIVE);
+        return toContractResponse(contractRepository.save(contract));
+
     }
 
     public UUID startContractImport(byte[] fileContent){
@@ -89,8 +122,20 @@ public class ContractService implements ContractFacade {
         return csvImportService.getContractsImportStatus(jobId);
     }
 
-    private ContractResponse toContractResponse(Contract c) {
-        return new ContractResponse(
+    public Page<ContractView> getAll(Pageable pageable){
+        return contractRepository.findAll(pageable).map(this::toContractResponse);
+    }
+
+    public ContractView updateContractStatus(UUID id, ContractStatus status){
+        Contract contract = contractRepository.findById(id).orElseThrow(
+                () -> new ContractNotFoundException(id.toString())
+        );
+        contract.setStatus(status);
+        return toContractResponse(contractRepository.save(contract));
+    }
+
+    private ContractView toContractResponse(Contract c) {
+        return new ContractView(
                 c.getId(), c.getContractNumber(), c.getInsuredClient().getId(),
                 c.getProductType(), c.getStatus(), c.getStartDate(), c.getEndDate()
         );

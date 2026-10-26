@@ -137,6 +137,12 @@
 			<artifactId>commons-csv</artifactId>
 			<version>1.13.0</version>
 		</dependency>
+
+		<!-- Actuator -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

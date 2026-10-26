@@ -7,11 +7,16 @@ import com.sosmoch.schadenflow.insuredclient.InsuredClientFacade;
 import com.sosmoch.schadenflow.insuredclient.dto.*;
 import com.sosmoch.schadenflow.insuredclient.enums.InsuredClientStatus;
 import com.sosmoch.schadenflow.insuredclient.exceptions.InsuredClientNotFoundException;
+import com.sosmoch.schadenflow.insuredclient.exceptions.InvalidClientTransitionException;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.ClientCsvImportStrategy;
 import com.sosmoch.schadenflow.insuredclient.internal.csv.CsvImportService;
+import com.sosmoch.schadenflow.user.UserFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +30,8 @@ public class InsuredClientService implements InsuredClientFacade {
     private final InsuredClientRepository insuredClientRepository;
     private final CsvImportService csvImportService;
     private final ClientCsvImportStrategy clientCsvImportStrategy;
+    private final UserFacade userFacade;
+
     @Override
     public Optional<InsuredClientView> verifyClientHasIdentity(String clientNumber, String email) {
         InsuredClient client = insuredClientRepository.
@@ -99,8 +106,38 @@ public class InsuredClientService implements InsuredClientFacade {
         return toInsuredClientResponse(insuredClientRepository.save(client));
     }
 
+    public Page<InsuredClientRepsonse> getAll(InsuredClientStatus status, Pageable pageable){
+        Page<InsuredClient> page = (status != null)
+                ? insuredClientRepository.findByStatus(status, pageable)
+                : insuredClientRepository.findAll(pageable);
+        return page.map(this::toInsuredClientResponse);
+
+    }
+
+    @Transactional
+    public InsuredClientRepsonse updateStatus(InsuredClientStatus status, UUID id){
+        InsuredClient client = insuredClientRepository.findById(id).orElseThrow(
+                () -> new InsuredClientNotFoundException(id.toString())
+        );
+
+        if(client.getStatus().equals(InsuredClientStatus.PENDING_REGISTRATION)){
+            throw new InvalidClientTransitionException(id, client.getStatus(), status);
+        }
+
+        client.setStatus(status);
+        if(status.equals(InsuredClientStatus.SUSPENDED)){
+            userFacade.disableUser(client.getUserId());
+        }
+        else {
+            userFacade.enableUser(client.getUserId());
+        }
+        return toInsuredClientResponse(insuredClientRepository.save(client));
+    }
+
     private InsuredClientRepsonse toInsuredClientResponse(InsuredClient insuredClient){
         return InsuredClientRepsonse.from(insuredClient);
     }
+
+
 }
 

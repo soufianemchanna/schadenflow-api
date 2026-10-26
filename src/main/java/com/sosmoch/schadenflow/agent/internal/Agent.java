@@ -1,10 +1,12 @@
-package com.sosmoch.schadenflow.agent;
+package com.sosmoch.schadenflow.agent.internal;
 
 import com.sosmoch.schadenflow.core.database.SoftDeletable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.generator.EventType;
+import org.hibernate.annotations.Generated;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -24,10 +26,14 @@ public class Agent extends SoftDeletable {
 
     private UUID userId;
 
+    @Column(name = "agent_number", insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    private String agentNumber;
+
     @Column(nullable = false)
     private String agentName;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -35,7 +41,7 @@ public class Agent extends SoftDeletable {
     private Specialization specialization;
 
     @Builder.Default private boolean available = true;
-    @Builder.Default private int activeClaimsCount = 0;
+    @Builder.Default private boolean active = true;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

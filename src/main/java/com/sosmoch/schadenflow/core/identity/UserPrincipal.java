@@ -23,4 +23,5 @@ public record UserPrincipal(UUID id, String email, String role) implements UserD
     public String getUsername() {
         return email;
     }
+
 }

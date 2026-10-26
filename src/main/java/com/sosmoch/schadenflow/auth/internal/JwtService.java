@@ -3,6 +3,8 @@ package com.sosmoch.schadenflow.auth.internal;
 
 import com.sosmoch.schadenflow.user.UserView;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,8 +61,9 @@ public class JwtService {
     boolean isTokenValid(String token) {
         try {
             return extractClaims(token).getExpiration().after(new Date());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        }
+        catch (JwtException | IllegalArgumentException e) {
+           return false;
         }
     }
 }

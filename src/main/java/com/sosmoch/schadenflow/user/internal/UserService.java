@@ -20,7 +20,28 @@ public class UserService implements UserFacade {
     @Override
     public Optional<UserView> findUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .map(u -> new UserView(u.getId(), u.getEmail(), u.getUserRole(), u.getPasswordHash()));
+                .map(u -> new UserView(u.getId(), u.getEmail(), u.getUserRole(), u.getPasswordHash(), u.isEnabled()));
+    }
+
+    @Override
+    public boolean isUserEnabled(UUID id) {
+        return userRepository.findById(id)
+                .map(User::isEnabled)
+                .orElse(false);
+    }
+
+    @Override
+    public void enableUser(UUID id) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void disableUser(UUID id) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setEnabled(false);
+        userRepository.save(user);
     }
 
     @Override

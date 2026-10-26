@@ -2,7 +2,7 @@ package com.sosmoch.schadenflow.insuredclient.enums;
 
 public enum ContractStatus {
     ACTIVE,
-    SUSPENDED, // suspended by insured client
+    SUSPENDED,
     EXPIRED,
     CANCELLED // canceled by admin
 }
